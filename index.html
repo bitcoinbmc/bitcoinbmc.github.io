@@ -153,21 +153,17 @@
         }
 
         .copied-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            position: fixed;
             background-color: rgba(212, 175, 55, 0.9);
             color: black;
-            padding: 15px 30px;
-            border-radius: 10px;
+            padding: 10px 20px;
+            border-radius: 5px;
             z-index: 1000;
             display: none;
             text-align: center;
             font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translate(-50%, 0);
         }
-
         footer {
             background-color: var(--elegant-black);
             padding: 15px;
@@ -205,6 +201,51 @@
         h1 { font-size: 2.5rem; }
         h2 { font-size: 1.8rem; }
         h3 { font-size: 1.3rem; }
+
+        .video-container {
+            position: relative;
+            max-width: 500px;
+            margin: 20px auto;
+            border: 4px solid var(--gold-accent);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .video-container video {
+            width: 70%;
+            height: auto;
+            object-fit: cover;
+        }
+
+       .video-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-controls button {
+            font-size: 16px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .video-controls button:hover {
+            color: var(--gold-accent);
+        }
+
+        .video-controls .volume-slider {
+            width: 100px;
+            accent-color: var(--gold-accent);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -239,6 +280,17 @@
                 <h1>BTCBMC Token</h1>
                 <h2>Bitcoin But Made in China</h2>
 
+                <!-- Video Container -->
+            <div class="video-container">         
+                <video id="btcbmcVideo" autoplay loop muted playsinline>
+                    <source src="videos/as_the_war_approaches_chinese.MP4" type="video/mp4">
+                </video>
+                <div class="video-controls">
+                    <button id="playPauseBtn">▶️</button>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                </div>
+            </div>
+
                 <h3>Contract Address</h3>
                 <div id="contractAddress" class="contract-address">
                     CdxgrKN1JW6LUegVVivoSMBYiAEzvMEjqEab89Pxpump
@@ -254,21 +306,69 @@
         <p>© 2024 BTCBMC. All Rights Reserved.</p>
     </footer>
 
+    <!-- JavaScript Section -->
     <script>
-        document.getElementById('contractAddress').addEventListener('click', function() {
-            const contractAddress = this.textContent;
-            
-            // coppy to clipboard
-            navigator.clipboard.writeText(contractAddress).then(function() {
-                const copyMessage = document.getElementById('copyMessage');
-                copyMessage.style.display = 'block';
-                
-                // after 2 second hide notification
-                setTimeout(function() {
-                    copyMessage.style.display = 'none';
-                }, 2000);
+        document.addEventListener("DOMContentLoaded", function () {
+            const video = document.getElementById('btcbmcVideo');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            let firstClick = true; // check first touch play video
+            const volumeStep = 0.1; // first click +sound 0.1
+
+            video.muted = true; // muted mode anti browser block kub 
+
+            playPauseBtn.addEventListener('click', () => {
+                if (firstClick) {
+                    // +0.1 sound video
+                    video.volume = Math.min(video.volume + volumeStep, 1); // anti sound > 1
+                    video.muted = false; // close mute
+                    video.play();
+                    playPauseBtn.textContent = '⏸️';
+                    firstClick = false; // exit first click mode
+                } else {
+                    // Logic Play/Pause Normal Mode
+                    if (video.paused) {
+                        video.play();
+                        playPauseBtn.textContent = '⏸️';
+                    } else {
+                        video.pause();
+                        playPauseBtn.textContent = '▶️';
+                    }
+                }
+            });
+
+            // Handle the volume slider changes
+            const volumeSlider = document.getElementById('volumeSlider');
+            volumeSlider.addEventListener('input', () => {
+                const volumeValue = parseFloat(volumeSlider.value);
+                video.volume = volumeValue;
+                if (volumeValue > 0) video.muted = false;
+                if (volumeValue === 0) video.muted = true;
             });
         });
+        // Contract Address Copy Functionality
+            const contractAddressEl = document.getElementById('contractAddress');
+            const copyMessageEl = document.getElementById('copyMessage');
+
+            contractAddressEl.addEventListener('click', function () {
+                const contractAddress = this.textContent.trim();
+
+                // Copy to clipboard
+                navigator.clipboard.writeText(contractAddress).then(() => {
+                    // Get the bounding rectangle of the contractAddress element
+                    const rect = contractAddressEl.getBoundingClientRect();
+
+                    // Position the copied message at the center of the contractAddress
+                    copyMessageEl.style.left = `${rect.left + rect.width / 2}px`;
+                    copyMessageEl.style.top = `${rect.top - 20}px`; // Show it just above the address
+                    copyMessageEl.style.display = 'block';
+
+                    // Hide message after 2 seconds
+                    setTimeout(() => {
+                        copyMessageEl.style.display = 'none';
+                    }, 2000);
+                });
+            });
+
     </script>
 </body>
 </html>
