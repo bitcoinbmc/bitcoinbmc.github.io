@@ -318,34 +318,48 @@
             return;
         }
 
-        let firstClick = true;
+        let isPlaying = false;
+        const initialVolume = 0.5; // Set Default Volume Level
         const volumeStep = 0.1;
 
-        video.muted = true;
+        // Set initial video properties
+        video.volume = initialVolume;
+        video.muted = false;
 
+        // Handle Play/Pause Button
         playPauseBtn.addEventListener('click', () => {
-            if (firstClick) {
-                video.volume = Math.min(video.volume + volumeStep, 1);
-                video.muted = false;
+            if (isPlaying) {
+                video.pause();
+                playPauseBtn.textContent = '▶️';
+            } else {
                 video.play();
                 playPauseBtn.textContent = '⏸️';
-                firstClick = false;
-            } else {
-                if (video.paused) {
-                    video.play();
-                    playPauseBtn.textContent = '⏸️';
-                } else {
-                    video.pause();
-                    playPauseBtn.textContent = '▶️';
-                }
             }
+            isPlaying = !isPlaying;
         });
 
+        // Handle Volume Slider
+        volumeSlider.value = initialVolume; // Set initial slider value
         volumeSlider.addEventListener('input', () => {
             const volumeValue = parseFloat(volumeSlider.value);
+
+            if (volumeValue <= 0) {
+                video.muted = true;
+            } else {
+                video.muted = false;
+            }
+
             video.volume = volumeValue;
-            if (volumeValue > 0) video.muted = false;
-            if (volumeValue === 0) video.muted = true;
+        });
+
+        // Add a safety listener for `loadedmetadata` to ensure video is ready
+        video.addEventListener('loadedmetadata', () => {
+            console.log("Video metadata loaded, ready to play.");
+        });
+
+        // Handle errors
+        video.addEventListener('error', (e) => {
+            console.error("Error loading video: ", e);
         });
     });
         // Contract Address Copy Functionality
