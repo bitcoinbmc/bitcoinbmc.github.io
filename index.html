@@ -17,6 +17,7 @@
         * {
             box-sizing: border-box;
             transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -28,6 +29,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overscroll-behavior-y: contain;
         }
 
         .elegant-nav {
@@ -212,7 +214,7 @@
         }
 
         .video-container video {
-            width: 70%;
+            width: 100%;
             height: auto;
             object-fit: cover;
         }
@@ -282,8 +284,18 @@
 
                 <!-- Video Container -->
             <div class="video-container">         
-                <video id="btcbmcVideo" autoplay loop muted preload="auto">
+                <video 
+                    id="btcbmcVideo" 
+                    playsinline 
+                    webkit-playsinline 
+                    x5-playsinline 
+                    autoplay 
+                    loop 
+                    muted 
+                    preload="auto"
+                >
                     <source src="https://res.cloudinary.com/drhxolgct/video/upload/v1733928863/as_the_war_approaches_chinese_zy6xiz.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
                 </video>
                 <div class="video-controls">
                     <button id="playPauseBtn">▶️</button>
@@ -318,13 +330,25 @@
             return;
         }
 
-        let isPlaying = false;
+        let isPlaying = true;  // Start as true since video autoplays
         const initialVolume = 0.5; // Set Default Volume Level
         const volumeStep = 0.1;
 
-        // Set initial video properties
+        // Initial video properties
         video.volume = initialVolume;
         video.muted = false;
+
+        // Attempt initial play with error handling for iOS
+        function initializeVideo() {
+            video.play().catch(error => {
+                console.warn("Autoplay was prevented:", error);
+                playPauseBtn.textContent = '▶️';
+                isPlaying = false;
+            });
+        }
+
+        // Initial video setup
+        initializeVideo();
 
         // Handle Play/Pause Button
         playPauseBtn.addEventListener('click', () => {
@@ -332,7 +356,9 @@
                 video.pause();
                 playPauseBtn.textContent = '▶️';
             } else {
-                video.play();
+                video.play().catch(error => {
+                    console.warn("Play prevented:", error);
+                });
                 playPauseBtn.textContent = '⏸️';
             }
             isPlaying = !isPlaying;
@@ -361,31 +387,31 @@
         video.addEventListener('error', (e) => {
             console.error("Error loading video: ", e);
         });
-    });
+
         // Contract Address Copy Functionality
-            const contractAddressEl = document.getElementById('contractAddress');
-            const copyMessageEl = document.getElementById('copyMessage');
+        const contractAddressEl = document.getElementById('contractAddress');
+        const copyMessageEl = document.getElementById('copyMessage');
 
-            contractAddressEl.addEventListener('click', function () {
-                const contractAddress = this.textContent.trim();
+        contractAddressEl.addEventListener('click', function () {
+            const contractAddress = this.textContent.trim();
 
-                // Copy to clipboard
-                navigator.clipboard.writeText(contractAddress).then(() => {
-                    // Get the bounding rectangle of the contractAddress element
-                    const rect = contractAddressEl.getBoundingClientRect();
+            // Copy to clipboard
+            navigator.clipboard.writeText(contractAddress).then(() => {
+                // Get the bounding rectangle of the contractAddress element
+                const rect = contractAddressEl.getBoundingClientRect();
 
-                    // Position the copied message at the center of the contractAddress
-                    copyMessageEl.style.left = `${rect.left + rect.width / 2}px`;
-                    copyMessageEl.style.top = `${rect.top - 20}px`; // Show it just above the address
-                    copyMessageEl.style.display = 'block';
+                // Position the copied message at the center of the contractAddress
+                copyMessageEl.style.left = `${rect.left + rect.width / 2}px`;
+                copyMessageEl.style.top = `${rect.top - 20}px`; // Show it just above the address
+                copyMessageEl.style.display = 'block';
 
-                    // Hide message after 2 seconds
-                    setTimeout(() => {
-                        copyMessageEl.style.display = 'none';
-                    }, 2000);
-                });
+                // Hide message after 2 seconds
+                setTimeout(() => {
+                    copyMessageEl.style.display = 'none';
+                }, 2000);
             });
-
+        });
+    });
     </script>
 </body>
 </html>
