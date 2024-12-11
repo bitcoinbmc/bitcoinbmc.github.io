@@ -130,6 +130,42 @@
             border-radius: 8px;
             word-break: break-all;
             font-family: 'Courier New', monospace;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .contract-address::before {
+            content: 'Copy';
+            position: absolute;
+            top: -25px;
+            right: 0;
+            background-color: var(--gold-accent);
+            color: black;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .contract-address:hover::before {
+            opacity: 1;
+        }
+
+        .copied-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(212, 175, 55, 0.9);
+            color: black;
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         footer {
@@ -172,11 +208,14 @@
     </style>
 </head>
 <body>
+    <div class="copied-message" id="copyMessage">Copied!</div>
+
     <nav class="elegant-nav text-center">
         <a href="#home">HOME</a>
         <a href="https://pump.fun/coin/CdxgrKN1JW6LUegVVivoSMBYiAEzvMEjqEab89Pxpump" target="_blank">BUY $BTCBMC</a>
         <a href="https://x.com/BTCmadeinChina" target="_blank">OFFICIAL X</a>
         <a href="https://t.me/+gbBP-JzwMHdiMDM1" target="_blank">TELEGRAM</a>
+        <a href="https://www.facebook.com/groups/bitcoinbmc/" target="_blank">Facebook GROUP</a>
     </nav>
 
     <div class="main-wrapper">
@@ -201,7 +240,7 @@
                 <h2>Bitcoin But Made in China</h2>
 
                 <h3>Contract Address</h3>
-                <div class="contract-address">
+                <div id="contractAddress" class="contract-address">
                     CdxgrKN1JW6LUegVVivoSMBYiAEzvMEjqEab89Pxpump
                 </div>
                 
@@ -215,6 +254,21 @@
         <p>© 2024 BTCBMC. All Rights Reserved.</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('contractAddress').addEventListener('click', function() {
+            const contractAddress = this.textContent;
+            
+            // coppy to clipboard
+            navigator.clipboard.writeText(contractAddress).then(function() {
+                const copyMessage = document.getElementById('copyMessage');
+                copyMessage.style.display = 'block';
+                
+                // after 2 second hide notification
+                setTimeout(function() {
+                    copyMessage.style.display = 'none';
+                }, 2000);
+            });
+        });
+    </script>
 </body>
 </html>
