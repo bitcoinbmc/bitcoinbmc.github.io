@@ -282,7 +282,7 @@
 
                 <!-- Video Container -->
             <div class="video-container">         
-                <video id="btcbmcVideo" autoplay loop muted playsinline>
+                <video id="btcbmcVideo" autoplay loop muted playsinline preload="auto">
                     <source src="https://res.cloudinary.com/drhxolgct/video/upload/v1733927701/as_the_war_approaches_chinese_u7boct.mp4" type="video/mp4">
                 </video>
                 <div class="video-controls">
@@ -308,43 +308,46 @@
 
     <!-- JavaScript Section -->
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const video = document.getElementById('btcbmcVideo');
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            let firstClick = true; // check first touch play video
-            const volumeStep = 0.1; // first click +sound 0.1
+       document.addEventListener("DOMContentLoaded", function () {
+        const video = document.getElementById('btcbmcVideo');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
 
-            video.muted = true; // muted mode anti browser block kub 
+        if (!video || !playPauseBtn || !volumeSlider) {
+            console.error("Some elements are missing in the DOM.");
+            return;
+        }
 
-            playPauseBtn.addEventListener('click', () => {
-                if (firstClick) {
-                    // +0.1 sound video
-                    video.volume = Math.min(video.volume + volumeStep, 1); // anti sound > 1
-                    video.muted = false; // close mute
+        let firstClick = true;
+        const volumeStep = 0.1;
+
+        video.muted = true;
+
+        playPauseBtn.addEventListener('click', () => {
+            if (firstClick) {
+                video.volume = Math.min(video.volume + volumeStep, 1);
+                video.muted = false;
+                video.play();
+                playPauseBtn.textContent = '⏸️';
+                firstClick = false;
+            } else {
+                if (video.paused) {
                     video.play();
                     playPauseBtn.textContent = '⏸️';
-                    firstClick = false; // exit first click mode
                 } else {
-                    // Logic Play/Pause Normal Mode
-                    if (video.paused) {
-                        video.play();
-                        playPauseBtn.textContent = '⏸️';
-                    } else {
-                        video.pause();
-                        playPauseBtn.textContent = '▶️';
-                    }
+                    video.pause();
+                    playPauseBtn.textContent = '▶️';
                 }
-            });
-
-            // Handle the volume slider changes
-            const volumeSlider = document.getElementById('volumeSlider');
-            volumeSlider.addEventListener('input', () => {
-                const volumeValue = parseFloat(volumeSlider.value);
-                video.volume = volumeValue;
-                if (volumeValue > 0) video.muted = false;
-                if (volumeValue === 0) video.muted = true;
-            });
+            }
         });
+
+        volumeSlider.addEventListener('input', () => {
+            const volumeValue = parseFloat(volumeSlider.value);
+            video.volume = volumeValue;
+            if (volumeValue > 0) video.muted = false;
+            if (volumeValue === 0) video.muted = true;
+        });
+    });
         // Contract Address Copy Functionality
             const contractAddressEl = document.getElementById('contractAddress');
             const copyMessageEl = document.getElementById('copyMessage');
