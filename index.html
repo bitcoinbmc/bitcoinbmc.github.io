@@ -308,7 +308,7 @@
 
     <!-- JavaScript Section -->
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
+       document.addEventListener("DOMContentLoaded", function () {
         const video = document.getElementById('btcbmcVideo');
         const playPauseBtn = document.getElementById('playPauseBtn');
         const volumeSlider = document.getElementById('volumeSlider');
@@ -327,30 +327,15 @@
         video.muted = false;
 
         // Handle Play/Pause Button
-        playPauseBtn.addEventListener('click', async () => {
+        playPauseBtn.addEventListener('click', () => {
             if (isPlaying) {
                 video.pause();
                 playPauseBtn.textContent = '▶️';
             } else {
-                try {
-                    await video.play();
-                    playPauseBtn.textContent = '⏸️';
-                    isPlaying = true;
-
-                    // Enter Full-Screen mode when playing
-                    if (video.requestFullscreen) {
-                        video.requestFullscreen();
-                    } else if (video.webkitRequestFullscreen) {
-                        video.webkitRequestFullscreen();
-                    } else if (video.mozRequestFullScreen) {
-                        video.mozRequestFullScreen();
-                    } else if (video.msRequestFullscreen) {
-                        video.msRequestFullscreen();
-                    }
-                } catch (error) {
-                    console.error("Unable to play video:", error);
-                }
+                video.play();
+                playPauseBtn.textContent = '⏸️';
             }
+            isPlaying = !isPlaying;
         });
 
         // Handle Volume Slider
@@ -375,13 +360,6 @@
         // Handle errors
         video.addEventListener('error', (e) => {
             console.error("Error loading video: ", e);
-        });
-
-        // Handle exiting fullscreen when clicking outside or pausing
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                console.log("Exited full-screen.");
-            }
         });
     });
         // Contract Address Copy Functionality
