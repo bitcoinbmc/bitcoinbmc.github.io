@@ -203,7 +203,7 @@
         h1 { font-size: 2.5rem; }
         h2 { font-size: 1.8rem; }
         h3 { font-size: 1.3rem; }
-
+        
         .video-container {
             position: relative;
             max-width: 500px;
@@ -213,13 +213,36 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .video-overlay-text {
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 10px;
+        }
+
         .video-container video {
             width: 100%;
             height: auto;
             object-fit: cover;
         }
 
-       .video-controls {
+        .video-controls {
             position: absolute;
             bottom: 10px;
             left: 50%;
@@ -230,6 +253,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            z-index: 20;
         }
 
         .video-controls button {
@@ -239,6 +263,7 @@
             color: white;
             cursor: pointer;
         }
+
         .video-controls button:hover {
             color: var(--gold-accent);
         }
@@ -282,26 +307,28 @@
                 <h1>BTCBMC Token</h1>
                 <h2>Bitcoin But Made in China</h2>
 
-                <!-- Video Container -->
-            <div class="video-container">         
-                <video 
-                    id="btcbmcVideo" 
-                    playsinline 
-                    webkit-playsinline 
-                    x5-playsinline 
-                    autoplay 
-                    loop 
-                    muted 
-                    preload="auto"
-                >
-                    <source src="https://res.cloudinary.com/drhxolgct/video/upload/v1733928863/as_the_war_approaches_chinese_zy6xiz.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-                <div class="video-controls">
-                    <button id="playPauseBtn">▶️</button>
-                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                <!-- Video Container with Overlay -->
+                <div class="video-container">
+                    <div id="videoOverlay" class="video-overlay">
+                        <div class="video-overlay-text">
+                            Tap to Play Video<br>
+                            BTCBMC: Bridging Global Chinese Communities
+                        </div>
+                    </div>
+                    <video 
+                        id="btcbmcVideo" 
+                        playsinline 
+                        webkit-playsinline 
+                        x5-playsinline 
+                        preload="auto">
+                        <source src="https://res.cloudinary.com/drhxolgct/video/upload/v1733928863/as_the_war_approaches_chinese_zy6xiz.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-controls">
+                        <button id="playPauseBtn">▶️</button>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                    </div>
                 </div>
-            </div>
 
                 <h3>Contract Address</h3>
                 <div id="contractAddress" class="contract-address">
@@ -320,98 +347,91 @@
 
     <!-- JavaScript Section -->
     <script>
-       document.addEventListener("DOMContentLoaded", function () {
-        const video = document.getElementById('btcbmcVideo');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const volumeSlider = document.getElementById('volumeSlider');
+        document.addEventListener("DOMContentLoaded", function () {
+            const video = document.getElementById('btcbmcVideo');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const videoOverlay = document.getElementById('videoOverlay');
 
-        if (!video || !playPauseBtn || !volumeSlider) {
-            console.error("Some elements are missing in the DOM.");
-            return;
-        }
+            if (!video || !playPauseBtn || !volumeSlider || !videoOverlay) {
+                console.error("Some elements are missing in the DOM.");
+                return;
+            }
 
-        let isPlaying = true;  // Start as true since video autoplays
-        const initialVolume = 0.5; // Set Default Volume Level
-        const volumeStep = 0.1;
+            let isPlaying = false;
+            const initialVolume = 0.5;
+            const volumeStep = 0.1;
 
-        // Initial video properties
-        video.volume = initialVolume;
-        video.muted = false;
+            // Initial video properties
+            video.muted = false;  // open sound
+            video.volume = 0.5;   // medium volume
+            // Function to start video
+            function startVideo() {
+                video.play().then(() => {
+                    isPlaying = true;
+                    videoOverlay.style.display = 'none';
+                    playPauseBtn.textContent = '⏸️';
+                }).catch(error => {
+                    console.warn("Play was prevented:", error);
+                });
+            }
 
-        // Attempt initial play with error handling for iOS
-        function initializeVideo() {
-            video.play().catch(error => {
-                console.warn("Autoplay was prevented:", error);
+            // Overlay click handler
+            videoOverlay.addEventListener('click', startVideo);
+
+            // Handle Play/Pause Button
+            playPauseBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    video.pause();
+                    playPauseBtn.textContent = '▶️';
+                    videoOverlay.style.display = 'flex';
+                } else {
+                    startVideo();
+                }
+                isPlaying = !isPlaying;
+            });
+
+            // Handle Volume Slider
+            volumeSlider.value = initialVolume;
+            volumeSlider.addEventListener('input', () => {
+                const volumeValue = parseFloat(volumeSlider.value);
+
+                if (volumeValue <= 0) {
+                    video.muted = true;
+                } else {
+                    video.muted = false;
+                }
+
+                video.volume = volumeValue;
+            });
+
+            // Pause and show overlay if video ends
+            video.addEventListener('ended', () => {
+                videoOverlay.style.display = 'flex';
                 playPauseBtn.textContent = '▶️';
                 isPlaying = false;
             });
-        }
 
-        // Initial video setup
-        initializeVideo();
+            // Contract Address Copy Functionality
+            const contractAddressEl = document.getElementById('contractAddress');
+            const copyMessageEl = document.getElementById('copyMessage');
 
-        // Handle Play/Pause Button
-        playPauseBtn.addEventListener('click', () => {
-            if (isPlaying) {
-                video.pause();
-                playPauseBtn.textContent = '▶️';
-            } else {
-                video.play().catch(error => {
-                    console.warn("Play prevented:", error);
+            contractAddressEl.addEventListener('click', function () {
+                const contractAddress = this.textContent.trim();
+
+                navigator.clipboard.writeText(contractAddress).then(() => {
+                    const rect = contractAddressEl.getBoundingClientRect();
+
+                    copyMessageEl.style.left = `${rect.left + rect.width / 2}px`;
+                    copyMessageEl.style.top = `${rect.top - 20}px`;
+                    copyMessageEl.style.display = 'block';
+
+                    setTimeout(() => {
+                        copyMessageEl.style.display = 'none';
+                    }, 2000);
                 });
-                playPauseBtn.textContent = '⏸️';
-            }
-            isPlaying = !isPlaying;
-        });
-
-        // Handle Volume Slider
-        volumeSlider.value = initialVolume; // Set initial slider value
-        volumeSlider.addEventListener('input', () => {
-            const volumeValue = parseFloat(volumeSlider.value);
-
-            if (volumeValue <= 0) {
-                video.muted = true;
-            } else {
-                video.muted = false;
-            }
-
-            video.volume = volumeValue;
-        });
-
-        // Add a safety listener for `loadedmetadata` to ensure video is ready
-        video.addEventListener('loadedmetadata', () => {
-            console.log("Video metadata loaded, ready to play.");
-        });
-
-        // Handle errors
-        video.addEventListener('error', (e) => {
-            console.error("Error loading video: ", e);
-        });
-
-        // Contract Address Copy Functionality
-        const contractAddressEl = document.getElementById('contractAddress');
-        const copyMessageEl = document.getElementById('copyMessage');
-
-        contractAddressEl.addEventListener('click', function () {
-            const contractAddress = this.textContent.trim();
-
-            // Copy to clipboard
-            navigator.clipboard.writeText(contractAddress).then(() => {
-                // Get the bounding rectangle of the contractAddress element
-                const rect = contractAddressEl.getBoundingClientRect();
-
-                // Position the copied message at the center of the contractAddress
-                copyMessageEl.style.left = `${rect.left + rect.width / 2}px`;
-                copyMessageEl.style.top = `${rect.top - 20}px`; // Show it just above the address
-                copyMessageEl.style.display = 'block';
-
-                // Hide message after 2 seconds
-                setTimeout(() => {
-                    copyMessageEl.style.display = 'none';
-                }, 2000);
             });
         });
-    });
     </script>
 </body>
 </html>
