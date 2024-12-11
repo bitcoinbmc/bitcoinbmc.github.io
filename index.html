@@ -205,10 +205,9 @@
         h3 { font-size: 1.3rem; }
         
         .video-container {
-            position: relative;
             max-width: 500px;
             margin: 20px auto;
-            border: 4px solid var(--gold-accent);
+            border: 4px solid #D4AF37;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
@@ -308,25 +307,30 @@
                 <h2>Bitcoin But Made in China</h2>
 
                 <!-- Video Container with Overlay -->
-                <div class="video-container">
-                    <div id="videoOverlay" class="video-overlay">
-                        <div class="video-overlay-text">
-                            Tap to Play Video<br>
-                            BTCBMC: Bridging Global Chinese Communities
-                        </div>
-                    </div>
+                <div class="video-container" style="position: relative;">
                     <video 
                         id="btcbmcVideo" 
                         playsinline 
-                        webkit-playsinline 
-                        x5-playsinline 
-                        preload="auto">
+                        style="max-width: 80%; border-radius: 15px;">
                         <source src="https://res.cloudinary.com/drhxolgct/video/upload/v1733928863/as_the_war_approaches_chinese_zy6xiz.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
+                    
+                    <div id="videoOverlay" class="video-overlay">
+                        <div class="video-overlay-text">Play Video!</div>
+                    </div>
+                    
                     <div class="video-controls">
                         <button id="playPauseBtn">▶️</button>
-                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                        <input 
+                            id="volumeSlider" 
+                            type="range" 
+                            min="0" 
+                            max="1" 
+                            step="0.1" 
+                            value="0.5" 
+                            class="volume-slider"
+                        >
                     </div>
                 </div>
 
@@ -347,7 +351,7 @@
 
     <!-- JavaScript Section -->
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('btcbmcVideo');
             const playPauseBtn = document.getElementById('playPauseBtn');
             const volumeSlider = document.getElementById('volumeSlider');
@@ -360,24 +364,36 @@
 
             let isPlaying = false;
             const initialVolume = 0.5;
-            const volumeStep = 0.1;
 
-            // Initial video properties
-            video.muted = false;  // open sound
-            video.volume = 0.5;   // medium volume
-            // Function to start video
-            function startVideo() {
-                video.play().then(() => {
-                    isPlaying = true;
-                    videoOverlay.style.display = 'none';
-                    playPauseBtn.textContent = '⏸️';
-                }).catch(error => {
-                    console.warn("Play was prevented:", error);
+            // Initial video setup
+            video.muted = true;  // Start muted
+            video.volume = initialVolume;
+            
+            // Autoplay with muted video
+            function startAutoplay() {
+                video.play().catch(error => {
+                    console.warn("Autoplay was prevented:", error);
+                    videoOverlay.style.display = 'flex';
                 });
             }
 
-            // Overlay click handler
-            videoOverlay.addEventListener('click', startVideo);
+            // Overlay click handler - unmute and play
+            videoOverlay.addEventListener('click', function() {
+                video.muted = false;
+                video.volume = initialVolume;
+                volumeSlider.value = initialVolume;
+                
+                video.play().then(() => {
+                    isPlaying = true;
+                    playPauseBtn.textContent = '⏸️';
+                    videoOverlay.style.display = 'none';
+                }).catch(error => {
+                    console.warn("Video play was prevented:", error);
+                    videoOverlay.style.display = 'flex';
+                    playPauseBtn.textContent = '▶️';
+                    isPlaying = false;
+                });
+            });
 
             // Handle Play/Pause Button
             playPauseBtn.addEventListener('click', () => {
@@ -385,23 +401,35 @@
                     video.pause();
                     playPauseBtn.textContent = '▶️';
                     videoOverlay.style.display = 'flex';
+                    isPlaying = false;
                 } else {
-                    startVideo();
+                    // If not playing, unmute and restart
+                    video.muted = false;
+                    video.volume = initialVolume;
+                    volumeSlider.value = initialVolume;
+                    
+                    video.play().then(() => {
+                        isPlaying = true;
+                        playPauseBtn.textContent = '⏸️';
+                        videoOverlay.style.display = 'none';
+                    }).catch(error => {
+                        console.warn("Video play was prevented:", error);
+                        videoOverlay.style.display = 'flex';
+                        playPauseBtn.textContent = '▶️';
+                        isPlaying = false;
+                    });
                 }
-                isPlaying = !isPlaying;
             });
 
             // Handle Volume Slider
             volumeSlider.value = initialVolume;
             volumeSlider.addEventListener('input', () => {
                 const volumeValue = parseFloat(volumeSlider.value);
-
                 if (volumeValue <= 0) {
                     video.muted = true;
                 } else {
                     video.muted = false;
                 }
-
                 video.volume = volumeValue;
             });
 
@@ -412,24 +440,27 @@
                 isPlaying = false;
             });
 
-            // Contract Address Copy Functionality
-            const contractAddressEl = document.getElementById('contractAddress');
-            const copyMessageEl = document.getElementById('copyMessage');
+            // Start autoplay (muted)
+            startAutoplay();
+        });
 
-            contractAddressEl.addEventListener('click', function () {
-                const contractAddress = this.textContent.trim();
+        // Contract Address Copy Functionality
+        const contractAddressEl = document.getElementById('contractAddress');
+        const copyMessageEl = document.getElementById('copyMessage');
 
-                navigator.clipboard.writeText(contractAddress).then(() => {
-                    const rect = contractAddressEl.getBoundingClientRect();
+        contractAddressEl.addEventListener('click', function () {
+            const contractAddress = this.textContent.trim();
 
-                    copyMessageEl.style.left = `${rect.left + rect.width / 2}px`;
-                    copyMessageEl.style.top = `${rect.top - 20}px`;
-                    copyMessageEl.style.display = 'block';
+            navigator.clipboard.writeText(contractAddress).then(() => {
+                const rect = contractAddressEl.getBoundingClientRect();
 
-                    setTimeout(() => {
-                        copyMessageEl.style.display = 'none';
-                    }, 2000);
-                });
+                copyMessageEl.style.left = `${rect.left + rect.width / 2}px`;
+                copyMessageEl.style.top = `${rect.top - 20}px`;
+                copyMessageEl.style.display = 'block';
+
+                setTimeout(() => {
+                    copyMessageEl.style.display = 'none';
+                }, 2000);
             });
         });
     </script>
